@@ -193,7 +193,8 @@ export const useStore = create<AppState>((set, get) => ({
             get().fetchTournaments();
             get().fetchUsers();
         } catch (error: any) {
-            alert(error.response?.data?.error || "Failed to join tournament");
+            const message = error.response?.data?.error || error.message || "Failed to join tournament";
+            alert(message);
         }
     },
 
@@ -205,7 +206,8 @@ export const useStore = create<AppState>((set, get) => ({
             await api.post('/transactions/deposit', { userId: currentUser.id, amount, upiRef });
             get().fetchTransactions();
         } catch (error: any) {
-            alert(error.response?.data?.error || "Failed to request deposit");
+            const message = error.response?.data?.error || error.message || "Failed to request deposit";
+            alert(message);
         }
     },
 
@@ -217,7 +219,8 @@ export const useStore = create<AppState>((set, get) => ({
             await api.post('/transactions/withdraw', { userId: currentUser.id, amount, upiId });
             get().fetchTransactions();
         } catch (error: any) {
-            alert(error.response?.data?.error || "Failed to request withdrawal");
+            const message = error.response?.data?.error || error.message || "Failed to request withdrawal";
+            alert(message);
         }
     },
 
@@ -227,7 +230,8 @@ export const useStore = create<AppState>((set, get) => ({
             get().fetchTournaments();
             alert("Tournament created successfully!");
         } catch (error: any) {
-            alert(error.response?.data?.error || "Failed to create tournament");
+            const message = error.response?.data?.error || error.message || "Failed to create tournament";
+            alert(message);
         }
     },
 
@@ -237,7 +241,8 @@ export const useStore = create<AppState>((set, get) => ({
             get().fetchTournaments();
             alert("Tournament updated successfully!");
         } catch (error: any) {
-            alert(error.response?.data?.error || "Failed to update tournament");
+            const message = error.response?.data?.error || error.message || "Failed to update tournament";
+            alert(message);
         }
     },
 
@@ -249,7 +254,8 @@ export const useStore = create<AppState>((set, get) => ({
             get().fetchTransactions(); // Refresh transactions to show prize
             alert('Winner declared and prize transferred successfully!');
         } catch (error: any) {
-            alert(error.response?.data?.error || 'Failed to declare winner');
+            const message = error.response?.data?.error || error.message || 'Failed to declare winner';
+            alert(message);
         }
     },
 
@@ -261,7 +267,8 @@ export const useStore = create<AppState>((set, get) => ({
             get().fetchTransactions(); // Refresh transactions to show refunds
             alert(`Tournament cancelled! ${response.data.refundedParticipants} participants refunded ₹${response.data.refundAmount} each.`);
         } catch (error: any) {
-            alert(error.response?.data?.error || 'Failed to cancel tournament');
+            const message = error.response?.data?.error || error.message || 'Failed to cancel tournament';
+            alert(message);
         }
     },
 
@@ -271,7 +278,8 @@ export const useStore = create<AppState>((set, get) => ({
             get().fetchTournaments();
             alert('Tournament deleted successfully!');
         } catch (error: any) {
-            alert(error.response?.data?.error || 'Failed to delete tournament');
+            const message = error.response?.data?.error || error.message || 'Failed to delete tournament';
+            alert(message);
         }
     },
 
@@ -281,7 +289,8 @@ export const useStore = create<AppState>((set, get) => ({
             get().fetchTransactions();
             get().fetchUsers();
         } catch (error: any) {
-            alert(error.response?.data?.error || "Failed to approve transaction");
+            const message = error.response?.data?.error || error.message || "Failed to approve transaction";
+            alert(message);
         }
     },
 
@@ -291,7 +300,8 @@ export const useStore = create<AppState>((set, get) => ({
             get().fetchTransactions();
             get().fetchUsers();
         } catch (error: any) {
-            alert(error.response?.data?.error || "Failed to reject transaction");
+            const message = error.response?.data?.error || error.message || "Failed to reject transaction";
+            alert(message);
         }
     },
 }));
