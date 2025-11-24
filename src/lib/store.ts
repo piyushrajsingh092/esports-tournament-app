@@ -14,6 +14,7 @@ interface AppState {
     // Actions
     login: (email: string, password?: string) => Promise<void>;
     signup: (email: string, password: string, username: string) => Promise<void>;
+    loginWithSocial: (provider: 'google' | 'facebook' | 'twitter') => Promise<void>;
     logout: () => Promise<void>;
     fetchTournaments: () => Promise<void>;
     fetchUsers: () => Promise<void>;
@@ -74,6 +75,17 @@ export const useStore = create<AppState>((set, get) => ({
                 data: {
                     username
                 }
+            }
+        });
+
+        if (error) throw error;
+    },
+
+    loginWithSocial: async (provider: 'google' | 'facebook' | 'twitter') => {
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider,
+            options: {
+                redirectTo: `${window.location.origin}/`
             }
         });
 
