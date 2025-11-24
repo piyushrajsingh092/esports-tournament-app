@@ -69,3 +69,45 @@ export const getUserNotifications = async (userId: string) => {
         return [];
     }
 };
+
+export const notifyAllAdmins = async (title: string, message: string, type: NotificationType = 'info') => {
+    try {
+        // Fetch all admin users
+        const { data: admins, error } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('role', 'admin');
+
+        if (error) {
+            console.error('Error fetching admins:', error);
+            return false;
+        }
+
+        if (!admins || admins.length === 0) {
+            console.log('No admins found to notify');
+            return false;
+        }
+
+        // Create notification for each admin
+        const notifications = admins.map(admin => ({
+            user_id: admin.id,
+            title,
+            message,
+            type
+        }));
+
+        const { error: insertError } = await supabase
+            .from('notifications')
+            .insert(notifications);
+
+        if (insertError) {
+            console.error('Error creating admin notifications:', insertError);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Error notifying admins:', error);
+        return false;
+    }
+};

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../index';
 import { sendAdminAlert } from '../utils/emailService';
-import { createNotification } from '../utils/notificationService';
+import { createNotification, notifyAllAdmins } from '../utils/notificationService';
 
 export const getTransactions = async (req: Request, res: Response) => {
     const { userId } = req.query;
@@ -36,6 +36,13 @@ export const requestDeposit = async (req: Request, res: Response) => {
         await sendAdminAlert(
             'New Deposit Request',
             `User ${userId} requested a deposit of ₹${amount}. UPI Ref: ${upiRef}`
+        );
+
+        // Notify all admins in-app
+        await notifyAllAdmins(
+            'New Deposit Request',
+            `A user requested a deposit of ₹${amount}. Please review and approve.`,
+            'info'
         );
 
         res.status(201).json(transaction);
@@ -74,6 +81,13 @@ export const requestWithdrawal = async (req: Request, res: Response) => {
         await sendAdminAlert(
             'New Withdrawal Request',
             `User ${userId} requested a withdrawal of ₹${amount}. UPI ID: ${upiId}`
+        );
+
+        // Notify all admins in-app
+        await notifyAllAdmins(
+            'New Withdrawal Request',
+            `A user requested a withdrawal of ₹${amount}. Please review and approve.`,
+            'warning'
         );
 
         res.status(201).json({ message: "Withdrawal requested" });
