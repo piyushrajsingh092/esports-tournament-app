@@ -26,6 +26,7 @@ interface AppState {
     joinTournament: (tournamentId: string) => Promise<void>;
     requestDeposit: (amount: number, upiRef: string) => Promise<void>;
     requestWithdrawal: (amount: number, upiId: string) => Promise<void>;
+    updateProfile: (username: string) => Promise<void>;
 
     // Admin Actions
     createTournament: (tournament: Omit<Tournament, 'id' | 'currentPlayers' | 'status' | 'participants'>) => Promise<void>;
@@ -352,5 +353,20 @@ export const useStore = create<AppState>((set, get) => ({
         } catch (error: any) {
             throw new Error(error.response?.data?.error || error.message || "Failed to send broadcast");
         }
+    },
+
+    updateProfile: async (username: string) => {
+        const { currentUser } = get();
+        if (!currentUser) return;
+
+        const { error } = await supabase
+            .from('profiles')
+            .update({ username })
+            .eq('id', currentUser.id);
+
+        if (error) throw error;
+
+        // Optimistic update
+        set({ currentUser: { ...currentUser, username } });
     },
 }));

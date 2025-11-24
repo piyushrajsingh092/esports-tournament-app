@@ -75,6 +75,35 @@ export function AdminNotifications() {
                     </form>
                 </CardContent>
             </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Debug Notifications</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4">
+                        Send a test email to yourself to verify the email configuration.
+                    </p>
+                    <Button variant="outline" onClick={async () => {
+                        const email = prompt("Enter email to send test to:");
+                        if (!email) return;
+                        try {
+                            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/notifications/test`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ email })
+                            });
+                            const data = await res.json();
+                            if (res.ok) alert(data.message);
+                            else alert("Error: " + data.error);
+                        } catch (e: any) {
+                            alert("Request failed: " + e.message);
+                        }
+                    }}>
+                        Send Test Email
+                    </Button>
+                </CardContent>
+            </Card>
         </div>
     );
 }

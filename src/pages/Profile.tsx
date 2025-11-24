@@ -9,10 +9,25 @@ import { supabase } from '../lib/supabase';
 import { User, Wallet, History, Lock } from 'lucide-react';
 
 export function Profile() {
-    const { currentUser, transactions, fetchTransactions } = useStore();
+    const { currentUser, transactions, fetchTransactions, updateProfile } = useStore();
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [newUsername, setNewUsername] = useState(currentUser?.username || '');
+    const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+
+    const handleUpdateProfile = async () => {
+        if (!newUsername.trim()) return alert('Username cannot be empty');
+        setIsUpdatingProfile(true);
+        try {
+            await updateProfile(newUsername);
+            alert('Profile updated successfully!');
+        } catch (error: any) {
+            alert('Failed to update profile: ' + error.message);
+        } finally {
+            setIsUpdatingProfile(false);
+        }
+    };
 
     const handlePasswordChange = async () => {
         if (newPassword !== confirmPassword) {
@@ -120,6 +135,32 @@ export function Profile() {
                                     );
                                 })
                             )}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <User className="h-5 w-5" />
+                            Edit Profile
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Username</label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        value={newUsername}
+                                        onChange={(e) => setNewUsername(e.target.value)}
+                                        placeholder="Enter username"
+                                    />
+                                    <Button onClick={handleUpdateProfile} disabled={isUpdatingProfile}>
+                                        {isUpdatingProfile ? 'Saving...' : 'Save'}
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

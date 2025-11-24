@@ -41,10 +41,10 @@ export function Leaderboard() {
                                             {index === 0 ? <Trophy className="h-5 w-5 text-yellow-500" /> :
                                                 index === 1 ? <Medal className="h-5 w-5 text-gray-400" /> :
                                                     index === 2 ? <Medal className="h-5 w-5 text-orange-500" /> :
-                                                        <span className="font-bold text-primary">{user.username.charAt(0).toUpperCase()}</span>}
+                                                        <span className="font-bold text-primary">{(user.username || 'U').charAt(0).toUpperCase()}</span>}
                                         </div>
                                         <div>
-                                            <p className="font-medium">{user.username}</p>
+                                            <p className="font-medium">{user.username || 'Unknown User'}</p>
                                             <p className="text-xs text-muted-foreground">Rank {index + 1}</p>
                                         </div>
                                     </div>
