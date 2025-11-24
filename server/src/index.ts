@@ -12,7 +12,16 @@ import notificationRoutes from './routes/notificationRoutes';
 dotenv.config();
 
 const app = express();
-export const prisma = new PrismaClient();
+
+// Prisma client with connection pooling for serverless
+export const prisma = new PrismaClient({
+    datasources: {
+        db: {
+            url: process.env.DATABASE_URL,
+        },
+    },
+});
+
 const PORT = process.env.PORT || 5000;
 
 app.use(cors({
