@@ -20,11 +20,12 @@ import { AdminUsers } from './pages/admin/Users';
 import { AdminTransactions } from './pages/admin/Transactions';
 
 function App() {
-  const { initializeRealtime } = useStore();
+  const { initializeRealtime, initializeAuth } = useStore();
 
   useEffect(() => {
+    initializeAuth();
     initializeRealtime();
-  }, [initializeRealtime]);
+  }, [initializeRealtime, initializeAuth]);
 
   return (
     <Router>

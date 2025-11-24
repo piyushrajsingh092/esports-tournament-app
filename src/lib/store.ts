@@ -20,6 +20,7 @@ interface AppState {
     fetchUsers: () => Promise<void>;
     fetchTransactions: () => Promise<void>;
     initializeRealtime: () => void;
+    initializeAuth: () => Promise<void>;
 
     // User Actions
     joinTournament: (tournamentId: string) => Promise<void>;
@@ -193,6 +194,33 @@ export const useStore = create<AppState>((set, get) => ({
                 get().fetchTournaments();
             })
             .subscribe();
+    },
+
+    initializeAuth: async () => {
+        // Check for existing session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+            if (profile) set({ currentUser: profile as User });
+        }
+
+        // Listen for auth changes
+        supabase.auth.onAuthStateChange(async (_event, session) => {
+            if (session?.user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+                if (profile) set({ currentUser: profile as User });
+            } else {
+                set({ currentUser: null });
+            }
+        });
     },
 
     joinTournament: async (tournamentId) => {
