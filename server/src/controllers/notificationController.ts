@@ -48,6 +48,10 @@ export const sendTestEmail = async (req: Request, res: Response) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'Email required' });
 
+    console.log('Attempting to send test email to:', email);
+    console.log('EMAIL_USER present:', !!process.env.EMAIL_USER);
+    console.log('EMAIL_PASS present:', !!process.env.EMAIL_PASS);
+
     try {
         const success = await sendBroadcastEmail([email], 'Test Email', 'This is a test email from the Esports App to verify your configuration.');
         if (success) {
