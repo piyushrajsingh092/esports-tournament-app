@@ -8,6 +8,7 @@ import transactionRoutes from './routes/transactionRoutes';
 import winnerRoutes from './routes/winnerRoutes';
 import cancelRoutes from './routes/cancelRoutes';
 import notificationRoutes from './routes/notificationRoutes';
+import paymentRoutes from './routes/paymentRoutes';
 
 dotenv.config();
 
@@ -47,6 +48,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tournaments', tournamentRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/payments', paymentRoutes);
 app.use('/api/winner', winnerRoutes);
 app.use('/api/cancel', cancelRoutes);
 

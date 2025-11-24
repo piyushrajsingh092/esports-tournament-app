@@ -19,6 +19,7 @@ import { AdminTournaments } from './pages/admin/Tournaments';
 import { AdminUsers } from './pages/admin/Users';
 import { AdminTransactions } from './pages/admin/Transactions';
 import { AdminNotifications } from './pages/admin/Notifications';
+import { PaymentCallback } from './pages/PaymentCallback';
 
 function App() {
   const { initializeRealtime, initializeAuth } = useStore();
@@ -41,6 +42,7 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/wallet" element={<Wallet />} />
             <Route path="/my-tournaments" element={<MyTournaments />} />
+            <Route path="/payment/callback" element={<PaymentCallback />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/schedule" element={<Schedule />} />

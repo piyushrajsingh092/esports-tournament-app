@@ -3,7 +3,8 @@ import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { useStore } from '../lib/store';
-import { ArrowUpCircle, ArrowDownCircle, Copy, Check } from 'lucide-react';
+import { ArrowUpCircle, ArrowDownCircle, Copy, Check, Zap } from 'lucide-react';
+import api from '../lib/api';
 
 export function Wallet() {
     const { currentUser, requestDeposit, requestWithdrawal } = useStore();
@@ -12,6 +13,7 @@ export function Wallet() {
     const [upiRef, setUpiRef] = useState(''); // For deposit
     const [upiId, setUpiId] = useState(''); // For withdrawal
     const [copied, setCopied] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState<'manual' | 'phonepe'>('phonepe');
 
     const ADMIN_UPI = "6202442690@ptyes";
 
@@ -21,19 +23,42 @@ export function Wallet() {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
             alert("Please enter a valid amount");
             return;
         }
 
         if (activeTab === 'deposit') {
-            if (!upiRef) {
-                alert("Please enter the UPI Reference ID");
-                return;
+            if (paymentMethod === 'phonepe') {
+                // PhonePe instant payment
+                try {
+                    const response = await api.post('/payments/create-order', {
+                        userId: currentUser?.id,
+                        amount: Number(amount)
+                    });
+
+                    if (response.data.success) {
+                        // Redirect to PhonePe payment page
+                        window.location.href = response.data.data.instrumentResponse.redirectInfo.url;
+                    } else {
+                        alert('Payment initiation failed. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('PhonePe payment error:', error);
+                    alert('Payment failed. Please try manual UPI or contact support.');
+                }
+            } else {
+                // Manual UPI
+                if (!upiRef) {
+                    alert("Please enter the UPI Reference ID");
+                    return;
+                }
+                requestDeposit(Number(amount), upiRef);
+                alert("Deposit request submitted successfully!");
+                setAmount('');
+                setUpiRef('');
             }
-            requestDeposit(Number(amount), upiRef);
-            alert("Deposit request submitted successfully!");
         } else {
             if (!upiId) {
                 alert("Please enter your UPI ID");
@@ -113,6 +138,46 @@ export function Wallet() {
                         </div>
                     )}
 
+                    {activeTab === 'deposit' && (
+                        <div className="space-y-3">
+                            <label className="text-sm font-medium">Payment Method</label>
+                            <div className="grid grid-cols-2 gap-3">
+                                <Button
+                                    type="button"
+                                    variant={paymentMethod === 'phonepe' ? 'default' : 'outline'}
+                                    onClick={() => setPaymentMethod('phonepe')}
+                                    className="h-auto py-3 flex flex-col gap-1"
+                                >
+                                    <Zap className="h-5 w-5" />
+                                    <span className="text-xs">Instant Payment</span>
+                                    <span className="text-xs text-muted-foreground">(PhonePe)</span>
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant={paymentMethod === 'manual' ? 'default' : 'outline'}
+                                    onClick={() => setPaymentMethod('manual')}
+                                    className="h-auto py-3 flex flex-col gap-1"
+                                >
+                                    <Copy className="h-5 w-5" />
+                                    <span className="text-xs">Manual UPI</span>
+                                    <span className="text-xs text-muted-foreground">(Slower)</span>
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'deposit' && paymentMethod === 'manual' && (
+                        <div className="p-4 rounded-lg bg-muted/50 space-y-2">
+                            <p className="text-sm font-medium text-muted-foreground">Admin UPI ID</p>
+                            <div className="flex items-center justify-between bg-background p-2 rounded border">
+                                <code className="text-primary font-bold">{ADMIN_UPI}</code>
+                                <Button size="icon" variant="ghost" onClick={handleCopy}>
+                                    {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="space-y-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Amount (₹)</label>
@@ -124,7 +189,7 @@ export function Wallet() {
                             />
                         </div>
 
-                        {activeTab === 'deposit' ? (
+                        {activeTab === 'deposit' && paymentMethod === 'manual' ? (
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">UPI Reference ID (UTR)</label>
                                 <Input
@@ -133,7 +198,7 @@ export function Wallet() {
                                     onChange={(e) => setUpiRef(e.target.value)}
                                 />
                             </div>
-                        ) : (
+                        ) : activeTab === 'withdraw' ? (
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">Your UPI ID</label>
                                 <Input
@@ -142,7 +207,7 @@ export function Wallet() {
                                     onChange={(e) => setUpiId(e.target.value)}
                                 />
                             </div>
-                        )}
+                        ) : null}
 
                         <Button className="w-full" size="lg" onClick={handleSubmit}>
                             {activeTab === 'deposit' ? 'Submit Deposit Request' : 'Request Withdrawal'}
