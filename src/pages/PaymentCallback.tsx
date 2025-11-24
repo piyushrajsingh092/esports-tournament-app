@@ -22,7 +22,6 @@ export function PaymentCallback() {
             }
 
             try {
-                // Check payment status
                 const response = await api.get(`/payments/status/${transactionId}`);
 
                 if (response.data.success && response.data.code === 'PAYMENT_SUCCESS') {
@@ -52,49 +51,43 @@ export function PaymentCallback() {
     }, [status, navigate]);
 
     return (
-        <div className=\"min-h-screen flex items-center justify-center p-4\">
-            < Card className =\"max-w-md w-full\">
-                < CardContent className =\"pt-6 text-center space-y-6\">
-    {
-        status === 'loading' && (
-            <>
-                <Loader2 className=\"h-16 w-16 mx-auto text-primary animate-spin\" />
-                <h2 className=\"text-2xl font-bold\">Processing Payment</h2 >
-                    <p className=\"text-muted-foreground\">{message}</p>
+        <div className="min-h-screen flex items-center justify-center p-4">
+            <Card className="max-w-md w-full">
+                <CardContent className="pt-6 text-center space-y-6">
+                    {status === 'loading' && (
+                        <>
+                            <Loader2 className="h-16 w-16 mx-auto text-primary animate-spin" />
+                            <h2 className="text-2xl font-bold">Processing Payment</h2>
+                            <p className="text-muted-foreground">{message}</p>
                         </>
-                    )
-    }
+                    )}
 
-    {
-        status === 'success' && (
-            <>
-                <CheckCircle className=\"h-16 w-16 mx-auto text-green-500\" />
-                <h2 className=\"text-2xl font-bold text-green-600\">Payment Successful!</h2 >
-                    <p className=\"text-muted-foreground\">{message}</p>
-                        < p className =\"text-sm text-muted-foreground\">Redirecting to wallet in 5 seconds...</p>
+                    {status === 'success' && (
+                        <>
+                            <CheckCircle className="h-16 w-16 mx-auto text-green-500" />
+                            <h2 className="text-2xl font-bold text-green-600">Payment Successful!</h2>
+                            <p className="text-muted-foreground">{message}</p>
+                            <p className="text-sm text-muted-foreground">Redirecting to wallet in 5 seconds...</p>
                         </>
-                    )
-    }
+                    )}
 
-    {
-        status === 'failed' && (
-            <>
-                <XCircle className=\"h-16 w-16 mx-auto text-red-500\" />
-                <h2 className=\"text-2xl font-bold text-red-600\">Payment Failed</h2 >
-                    <p className=\"text-muted-foreground\">{message}</p>
-                        < p className =\"text-sm text-muted-foreground\">Redirecting to wallet in 5 seconds...</p>
+                    {status === 'failed' && (
+                        <>
+                            <XCircle className="h-16 w-16 mx-auto text-red-500" />
+                            <h2 className="text-2xl font-bold text-red-600">Payment Failed</h2>
+                            <p className="text-muted-foreground">{message}</p>
+                            <p className="text-sm text-muted-foreground">Redirecting to wallet in 5 seconds...</p>
                         </>
-                    )
-    }
+                    )}
 
-    <Button
-        onClick={() => navigate('/wallet')}
-        className=\"w-full\"
-            >
-            Go to Wallet Now
-                    </Button >
-                </CardContent >
-            </Card >
-        </div >
+                    <Button
+                        onClick={() => navigate('/wallet')}
+                        className="w-full"
+                    >
+                        Go to Wallet Now
+                    </Button>
+                </CardContent>
+            </Card>
+        </div>
     );
 }
