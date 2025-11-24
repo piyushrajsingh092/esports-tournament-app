@@ -384,12 +384,17 @@ export const useStore = create<AppState>((set, get) => ({
 
     fetchNotifications: async () => {
         const { currentUser } = get();
-        if (!currentUser) return;
+        if (!currentUser) {
+            console.log('No current user, skipping notification fetch');
+            return;
+        }
 
+        console.log('Fetching notifications for user:', currentUser.id);
         try {
             const { data } = await api.get('/notifications', {
                 params: { userId: currentUser.id }
             });
+            console.log('Notifications received:', data);
             set({ notifications: data || [] });
         } catch (error) {
             console.error('Error fetching notifications:', error);
