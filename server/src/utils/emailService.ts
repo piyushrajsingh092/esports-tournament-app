@@ -19,7 +19,7 @@ const transporter = nodemailer.createTransport({
     debug: true,
     connectionTimeout: 10000, // 10 seconds
     family: 4 // Force IPv4
-});
+} as any);
 
 export const sendEmail = async (to: string, subject: string, html: string) => {
     try {
