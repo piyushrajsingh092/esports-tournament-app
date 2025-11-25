@@ -363,7 +363,7 @@ export function AdminTournaments() {
                                     <div className="border rounded-lg p-4 bg-muted/20">
                                         <label className="text-sm font-medium mb-3 block">Submit Tournament Results</label>
                                         <div className="space-y-2">
-                                            {getTournamentParticipants(editingTournament).map((user, index) => {
+                                            {getTournamentParticipants(editingTournament).map((user) => {
                                                 const resultData = resultsData.find(r => r.userId === user.id) || { userId: user.id, rank: 0, kills: 0 };
                                                 const tournament = tournaments.find(t => t.id === editingTournament);
                                                 let estimatedPrize = 0;
