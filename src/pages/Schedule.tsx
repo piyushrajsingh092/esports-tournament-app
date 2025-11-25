@@ -86,6 +86,18 @@ export function Schedule() {
                                                             <Trophy className="h-4 w-4" />
                                                             <span>Prize: ₹{tournament.prizePool}</span>
                                                         </div>
+                                                        {tournament.perKillReward && (
+                                                            <div className="flex items-center gap-1">
+                                                                <span>🎯</span>
+                                                                <span className="text-green-600 dark:text-green-400 font-medium">₹{tournament.perKillReward}/kill</span>
+                                                            </div>
+                                                        )}
+                                                        {tournament.prizeDistributions && tournament.prizeDistributions.length > 0 && (
+                                                            <div className="flex items-center gap-1">
+                                                                <span className="text-xs">🏆</span>
+                                                                <span className="text-xs font-medium">Top {tournament.prizeDistributions.length}</span>
+                                                            </div>
+                                                        )}
                                                         <div className="flex items-center gap-1">
                                                             <Users className="h-4 w-4" />
                                                             <span>{tournament.currentPlayers}/{tournament.maxPlayers}</span>

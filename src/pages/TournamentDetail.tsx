@@ -109,6 +109,73 @@ export function TournamentDetail() {
                         </CardContent>
                     </Card>
 
+                    {/* Prize Distribution */}
+                    {(tournament.prizeDistributions && tournament.prizeDistributions.length > 0) || tournament.perKillReward ? (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Prize Distribution</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {tournament.prizeDistributions && tournament.prizeDistributions.length > 0 && (
+                                    <div>
+                                        <h4 className="font-semibold mb-3 text-sm text-muted-foreground">Rank-Based Prizes</h4>
+                                        <div className="space-y-2">
+                                            {tournament.prizeDistributions
+                                                .sort((a, b) => a.rank - b.rank)
+                                                .map((pd) => (
+                                                    <div key={pd.rank} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${pd.rank === 1 ? 'bg-yellow-500/20 text-yellow-500' :
+                                                                    pd.rank === 2 ? 'bg-gray-400/20 text-gray-400' :
+                                                                        pd.rank === 3 ? 'bg-orange-500/20 text-orange-500' :
+                                                                            'bg-primary/20 text-primary'
+                                                                }`}>
+                                                                {pd.rank === 1 ? '🥇' : pd.rank === 2 ? '🥈' : pd.rank === 3 ? '🥉' : `#${pd.rank}`}
+                                                            </div>
+                                                            <span className="font-medium">
+                                                                {pd.rank === 1 ? '1st Place' :
+                                                                    pd.rank === 2 ? '2nd Place' :
+                                                                        pd.rank === 3 ? '3rd Place' :
+                                                                            `${pd.rank}th Place`}
+                                                            </span>
+                                                        </div>
+                                                        <span className="font-bold text-primary">₹{pd.amount}</span>
+                                                    </div>
+                                                ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {tournament.perKillReward && (
+                                    <div className="p-4 bg-green-500/10 rounded-lg border border-green-500/20">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-2xl">🎯</span>
+                                                <div>
+                                                    <p className="font-semibold text-green-600 dark:text-green-400">Per-Kill Reward</p>
+                                                    <p className="text-xs text-muted-foreground">Earn extra for each elimination</p>
+                                                </div>
+                                            </div>
+                                            <span className="font-bold text-lg text-green-600 dark:text-green-400">₹{tournament.perKillReward}/kill</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {!tournament.prizeDistributions?.length && !tournament.perKillReward && (
+                                    <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
+                                        <div className="flex items-center gap-2">
+                                            <Trophy className="h-5 w-5 text-primary" />
+                                            <div>
+                                                <p className="font-semibold">Winner Takes All</p>
+                                                <p className="text-sm text-muted-foreground">The winner receives the entire prize pool of ₹{tournament.prizePool}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    ) : null}
+
                     <Card>
                         <CardHeader>
                             <CardTitle>Rules</CardTitle>

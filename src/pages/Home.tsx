@@ -74,6 +74,18 @@ export function Home() {
                                     <Trophy className="h-4 w-4 text-yellow-500" />
                                     <span>Prize Pool: ₹{tournament.prizePool}</span>
                                 </div>
+                                {tournament.perKillReward && (
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-lg">🎯</span>
+                                        <span className="text-green-600 dark:text-green-400 font-medium">₹{tournament.perKillReward}/kill</span>
+                                    </div>
+                                )}
+                                {tournament.prizeDistributions && tournament.prizeDistributions.length > 0 && (
+                                    <div className="flex items-center gap-1">
+                                        <span className="text-xs">🏆</span>
+                                        <span className="text-xs font-medium">Top {tournament.prizeDistributions.length} win prizes</span>
+                                    </div>
+                                )}
                                 <div className="flex items-center gap-2">
                                     <Users className="h-4 w-4 text-blue-500" />
                                     <span>{tournament.currentPlayers}/{tournament.maxPlayers} Players</span>
