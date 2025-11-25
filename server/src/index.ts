@@ -22,6 +22,7 @@ export const prisma = new PrismaClient({
             url: process.env.DATABASE_URL,
         },
     },
+    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
 });
 
 const PORT = process.env.PORT || 5000;
