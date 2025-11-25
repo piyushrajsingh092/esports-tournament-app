@@ -8,12 +8,28 @@ export interface User {
     upiId?: string;
 }
 
+export interface PrizeDistribution {
+    rank: number;
+    amount: number;
+}
+
+export interface TournamentResult {
+    id: string;
+    tournamentId: string;
+    userId: string;
+    rank: number;
+    kills: number;
+    prizeWon: number;
+    username?: string; // For display
+}
+
 export interface Tournament {
     id: string;
     title: string;
     game: string;
     entryFee: number;
     prizePool: number;
+    perKillReward?: number;
     startDate: string;
     status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
     maxPlayers: number;
@@ -25,6 +41,8 @@ export interface Tournament {
     roomPassword?: string;
     participants: string[]; // Array of User IDs
     winnerId?: string;
+    prizeDistributions?: PrizeDistribution[];
+    results?: TournamentResult[];
 }
 
 export interface Transaction {

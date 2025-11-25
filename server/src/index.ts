@@ -9,6 +9,7 @@ import winnerRoutes from './routes/winnerRoutes';
 import cancelRoutes from './routes/cancelRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 import paymentRoutes from './routes/paymentRoutes';
+import resultRoutes from './routes/resultRoutes';
 
 dotenv.config();
 
@@ -51,6 +52,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/winner', winnerRoutes);
 app.use('/api/cancel', cancelRoutes);
+app.use('/api/results', resultRoutes);
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

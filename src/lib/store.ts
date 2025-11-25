@@ -34,6 +34,7 @@ interface AppState {
     updateTournament: (id: string, data: Partial<Tournament>) => Promise<void>;
     deleteTournament: (id: string) => Promise<void>;
     declareWinner: (tournamentId: string, winnerId: string) => Promise<void>;
+    submitResults: (tournamentId: string, results: { userId: string; rank: number; kills: number }[]) => Promise<void>;
     cancelTournament: (tournamentId: string) => Promise<void>;
     approveTransaction: (transactionId: string) => Promise<void>;
     rejectTransaction: (transactionId: string) => Promise<void>;
@@ -112,12 +113,26 @@ export const useStore = create<AppState>((set, get) => ({
                 startDate: t.start_date,
                 entryFee: t.entry_fee,
                 prizePool: t.prize_pool,
+                perKillReward: t.per_kill_reward,
                 maxPlayers: t.max_players,
                 currentPlayers: t.tournament_participants ? t.tournament_participants.length : t.current_players,
                 roomId: t.room_id,
                 roomPassword: t.room_password,
                 winnerId: t.winner_id,
-                participants: t.tournament_participants?.map((p: any) => p.user_id) || []
+                participants: t.tournament_participants?.map((p: any) => p.user_id) || [],
+                prizeDistributions: t.prize_distributions?.map((pd: any) => ({
+                    rank: pd.rank,
+                    amount: Number(pd.prize_amount)
+                })) || [],
+                results: t.tournament_results?.map((r: any) => ({
+                    id: r.id,
+                    tournamentId: r.tournament_id,
+                    userId: r.user_id,
+                    rank: r.rank,
+                    kills: r.kills,
+                    prizeWon: Number(r.prize_won),
+                    username: r.profiles?.username
+                })) || []
             }));
 
             set({ tournaments: tournamentsWithParticipants as Tournament[] });
@@ -309,6 +324,19 @@ export const useStore = create<AppState>((set, get) => ({
             alert('Winner declared and prize transferred successfully!');
         } catch (error: any) {
             const message = error.response?.data?.error || error.message || 'Failed to declare winner';
+            alert(message);
+        }
+    },
+
+    submitResults: async (tournamentId, results) => {
+        try {
+            await api.post(`/results/tournaments/${tournamentId}/results`, { results });
+            get().fetchTournaments();
+            get().fetchUsers();
+            get().fetchTransactions(); // Refresh transactions to show prizes
+            alert('Results submitted and prizes distributed successfully!');
+        } catch (error: any) {
+            const message = error.response?.data?.error || error.message || 'Failed to submit results';
             alert(message);
         }
     },

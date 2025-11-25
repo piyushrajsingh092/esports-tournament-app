@@ -7,7 +7,7 @@ import { useStore } from '../../lib/store';
 import { Plus, Trash2 } from 'lucide-react';
 
 export function AdminTournaments() {
-    const { tournaments, users, createTournament, updateTournament, declareWinner, cancelTournament, deleteTournament, fetchTournaments, fetchUsers } = useStore();
+    const { tournaments, users, createTournament, updateTournament, declareWinner, submitResults, cancelTournament, deleteTournament, fetchTournaments, fetchUsers } = useStore();
     const [isCreating, setIsCreating] = useState(false);
     const [editingTournament, setEditingTournament] = useState<string | null>(null);
     const [formData, setFormData] = useState({
@@ -15,23 +15,28 @@ export function AdminTournaments() {
         game: '',
         entryFee: 0,
         prizePool: 0,
+        perKillReward: 0,
         startDate: '',
         maxPlayers: 0,
         image: '',
         description: '',
         rules: ''
     });
+    const [distributionType, setDistributionType] = useState<'winner-takes-all' | 'rank-based'>('winner-takes-all');
+    const [prizeDistribution, setPrizeDistribution] = useState<{ rank: number; amount: number }[]>([]);
     const [editFormData, setEditFormData] = useState<{
         status: 'upcoming' | 'ongoing' | 'completed';
         roomId: string;
         roomPassword: string;
         winnerId: string;
-    }>({
-        status: 'upcoming',
-        roomId: '',
-        roomPassword: '',
-        winnerId: ''
-    });
+    }>(
+        {
+            status: 'upcoming',
+            roomId: '',
+            roomPassword: '',
+            winnerId: ''
+        });
+    const [resultsData, setResultsData] = useState<{ userId: string; rank: number; kills: number }[]>([]);
 
     useEffect(() => {
         fetchTournaments();
@@ -40,19 +45,26 @@ export function AdminTournaments() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        createTournament(formData);
+        const tournamentData = {
+            ...formData,
+            prizeDistribution: distributionType === 'rank-based' ? prizeDistribution : undefined
+        };
+        createTournament(tournamentData);
         setIsCreating(false);
         setFormData({
             title: '',
             game: '',
             entryFee: 0,
             prizePool: 0,
+            perKillReward: 0,
             startDate: '',
             maxPlayers: 0,
             image: '',
             description: '',
             rules: ''
         });
+        setDistributionType('winner-takes-all');
+        setPrizeDistribution([]);
     };
 
     const handleEditSubmit = (e: React.FormEvent) => {
@@ -80,6 +92,13 @@ export function AdminTournaments() {
             roomPassword: tournament.roomPassword || '',
             winnerId: tournament.winnerId || ''
         });
+        // Initialize results data for participants
+        const participants = getTournamentParticipants(tournament.id);
+        setResultsData(participants.map(p => ({
+            userId: p.id,
+            rank: 0,
+            kills: 0
+        })));
     };
 
     const getTournamentParticipants = (tournamentId: string) => {
@@ -157,6 +176,17 @@ export function AdminTournaments() {
                                         />
                                     </div>
                                     <div className="space-y-2">
+                                        <label className="text-sm font-medium">Per-Kill Reward (₹)</label>
+                                        <Input
+                                            type="number"
+                                            placeholder="0"
+                                            value={formData.perKillReward}
+                                            onChange={e => setFormData({ ...formData, perKillReward: Number(e.target.value) })}
+                                            min="0"
+                                        />
+                                        <p className="text-xs text-muted-foreground">Optional: Reward amount per kill</p>
+                                    </div>
+                                    <div className="space-y-2">
                                         <label className="text-sm font-medium">Max Players *</label>
                                         <Input
                                             type="number"
@@ -196,6 +226,85 @@ export function AdminTournaments() {
                                         onChange={e => setFormData({ ...formData, image: e.target.value })}
                                         required
                                     />
+                                </div>
+                            </div>
+
+                            {/* Prize Distribution */}
+                            <div className="space-y-4">
+                                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Prize Distribution</h3>
+                                <div className="space-y-3">
+                                    <div className="flex gap-4">
+                                        <label className="flex items-center gap-2">
+                                            <input
+                                                type="radio"
+                                                name="distributionType"
+                                                value="winner-takes-all"
+                                                checked={distributionType === 'winner-takes-all'}
+                                                onChange={() => {
+                                                    setDistributionType('winner-takes-all');
+                                                    setPrizeDistribution([]);
+                                                }}
+                                            />
+                                            <span className="text-sm">Winner Takes All</span>
+                                        </label>
+                                        <label className="flex items-center gap-2">
+                                            <input
+                                                type="radio"
+                                                name="distributionType"
+                                                value="rank-based"
+                                                checked={distributionType === 'rank-based'}
+                                                onChange={() => setDistributionType('rank-based')}
+                                            />
+                                            <span className="text-sm">Rank-Based Distribution</span>
+                                        </label>
+                                    </div>
+
+                                    {distributionType === 'rank-based' && (
+                                        <div className="space-y-2 border rounded-lg p-4 bg-muted/20">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <label className="text-sm font-medium">Configure Prizes by Rank</label>
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    onClick={() => setPrizeDistribution([...prizeDistribution, { rank: prizeDistribution.length + 1, amount: 0 }])}
+                                                >
+                                                    <Plus className="h-4 w-4 mr-1" /> Add Rank
+                                                </Button>
+                                            </div>
+                                            {prizeDistribution.map((pd, index) => (
+                                                <div key={index} className="flex gap-2 items-center">
+                                                    <span className="text-sm font-medium w-20">Rank {pd.rank}:</span>
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="Prize amount"
+                                                        value={pd.amount}
+                                                        onChange={e => {
+                                                            const updated = [...prizeDistribution];
+                                                            updated[index].amount = Number(e.target.value);
+                                                            setPrizeDistribution(updated);
+                                                        }}
+                                                        min="0"
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        variant="destructive"
+                                                        size="icon"
+                                                        onClick={() => {
+                                                            const updated = prizeDistribution.filter((_, i) => i !== index);
+                                                            // Re-number ranks
+                                                            updated.forEach((item, i) => item.rank = i + 1);
+                                                            setPrizeDistribution(updated);
+                                                        }}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                            {prizeDistribution.length === 0 && (
+                                                <p className="text-sm text-muted-foreground">Click "Add Rank" to configure rank-based prizes</p>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -251,21 +360,79 @@ export function AdminTournaments() {
                                 </div>
 
                                 {editFormData.status === 'completed' && (
-                                    <div>
-                                        <label className="text-sm font-medium mb-2 block">Declare Winner</label>
-                                        <select
-                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                            value={editFormData.winnerId}
-                                            onChange={e => setEditFormData({ ...editFormData, winnerId: e.target.value })}
-                                            required={editFormData.status === 'completed'}
+                                    <div className="border rounded-lg p-4 bg-muted/20">
+                                        <label className="text-sm font-medium mb-3 block">Submit Tournament Results</label>
+                                        <div className="space-y-2">
+                                            {getTournamentParticipants(editingTournament).map((user, index) => {
+                                                const resultData = resultsData.find(r => r.userId === user.id) || { userId: user.id, rank: 0, kills: 0 };
+                                                const tournament = tournaments.find(t => t.id === editingTournament);
+                                                let estimatedPrize = 0;
+                                                if (resultData.rank > 0 && tournament) {
+                                                    const rankPrize = tournament.prizeDistributions?.find(pd => pd.rank === resultData.rank);
+                                                    if (rankPrize) estimatedPrize += rankPrize.amount;
+                                                    if (tournament.perKillReward) estimatedPrize += tournament.perKillReward * resultData.kills;
+                                                }
+
+                                                return (
+                                                    <div key={user.id} className="grid grid-cols-12 gap-2 items-center p-2 bg-background rounded border">
+                                                        <div className="col-span-4">
+                                                            <p className="font-medium text-sm">{user.username}</p>
+                                                            <p className="text-xs text-muted-foreground">{user.email}</p>
+                                                        </div>
+                                                        <div className="col-span-3">
+                                                            <Input
+                                                                type="number"
+                                                                placeholder="Rank"
+                                                                value={resultData.rank || ''}
+                                                                onChange={e => {
+                                                                    const updated = resultsData.filter(r => r.userId !== user.id);
+                                                                    updated.push({ userId: user.id, rank: Number(e.target.value), kills: resultData.kills });
+                                                                    setResultsData(updated);
+                                                                }}
+                                                                min="0"
+                                                                className="h-8 text-sm"
+                                                            />
+                                                        </div>
+                                                        <div className="col-span-3">
+                                                            <Input
+                                                                type="number"
+                                                                placeholder="Kills"
+                                                                value={resultData.kills || ''}
+                                                                onChange={e => {
+                                                                    const updated = resultsData.filter(r => r.userId !== user.id);
+                                                                    updated.push({ userId: user.id, rank: resultData.rank, kills: Number(e.target.value) });
+                                                                    setResultsData(updated);
+                                                                }}
+                                                                min="0"
+                                                                className="h-8 text-sm"
+                                                            />
+                                                        </div>
+                                                        <div className="col-span-2 text-right">
+                                                            <p className="text-xs font-medium text-primary">₹{estimatedPrize}</p>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            className="mt-3 w-full"
+                                            onClick={() => {
+                                                const validResults = resultsData.filter(r => r.rank > 0);
+                                                if (validResults.length === 0) {
+                                                    alert('Please assign ranks to at least one participant');
+                                                    return;
+                                                }
+                                                if (window.confirm(`Submit results for ${validResults.length} participants?`)) {
+                                                    submitResults(editingTournament, validResults);
+                                                    setEditingTournament(null);
+                                                }
+                                            }}
                                         >
-                                            <option value="">Select Winner</option>
-                                            {getTournamentParticipants(editingTournament).map(user => (
-                                                <option key={user.id} value={user.id}>{user.username}</option>
-                                            ))}
-                                        </select>
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            Selecting a winner will automatically transfer the prize pool to their wallet.
+                                            Submit Results & Distribute Prizes
+                                        </Button>
+                                        <p className="text-xs text-muted-foreground mt-2">
+                                            Enter rank (1, 2, 3...) and kills for each participant. Prizes will be calculated and distributed automatically.
                                         </p>
                                     </div>
                                 )}

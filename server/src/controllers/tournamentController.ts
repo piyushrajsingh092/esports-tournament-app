@@ -6,7 +6,15 @@ export const getTournaments = async (req: Request, res: Response) => {
         const tournaments = await prisma.tournaments.findMany({
             orderBy: { created_at: 'desc' },
             include: {
-                tournament_participants: true
+                tournament_participants: true,
+                prize_distributions: true,
+                tournament_results: {
+                    include: {
+                        profiles: {
+                            select: { username: true }
+                        }
+                    }
+                }
             }
         });
         res.json(tournaments);
@@ -17,14 +25,16 @@ export const getTournaments = async (req: Request, res: Response) => {
 
 export const createTournament = async (req: Request, res: Response) => {
     try {
-        const { title, game, entryFee, prizePool, startDate, maxPlayers, image, description, rules } = req.body;
+        const { title, game, entryFee, prizePool, perKillReward, prizeDistribution, startDate, maxPlayers, image, description, rules } = req.body;
 
+        // Create tournament with optional per-kill reward
         const tournament = await prisma.tournaments.create({
             data: {
                 title,
                 game,
                 entry_fee: entryFee,
                 prize_pool: prizePool,
+                per_kill_reward: perKillReward || null,
                 start_date: new Date(startDate),
                 max_players: maxPlayers,
                 current_players: 0,
@@ -34,6 +44,18 @@ export const createTournament = async (req: Request, res: Response) => {
                 rules: rules || ''
             }
         });
+
+        // If prize distribution is provided, create prize distribution records
+        if (prizeDistribution && Array.isArray(prizeDistribution) && prizeDistribution.length > 0) {
+            await prisma.prize_distributions.createMany({
+                data: prizeDistribution.map((pd: { rank: number; amount: number }) => ({
+                    tournament_id: tournament.id,
+                    rank: pd.rank,
+                    prize_amount: pd.amount
+                }))
+            });
+        }
+
         res.status(201).json(tournament);
     } catch (error: any) {
         console.error('Create Tournament Error:', error);

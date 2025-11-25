@@ -7,7 +7,7 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
   schemas  = ["public", "auth"]
-  directUrl = env("DIRECT_URL")
+  // directUrl = env("DIRECT_URL")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -414,6 +414,7 @@ model profiles {
   tournament_participants tournament_participants[]
   tournaments             tournaments[]
   transactions            transactions[]
+  tournament_results      tournament_results[]
 
   @@schema("public")
 }
@@ -439,6 +440,7 @@ model tournaments {
   rules                   String?
   entry_fee               Decimal                   @db.Decimal
   prize_pool              Decimal                   @db.Decimal
+  per_kill_reward         Decimal?                  @db.Decimal
   max_players             Int
   current_players         Int?                      @default(0)
   start_date              DateTime                  @db.Timestamptz(6)
@@ -449,6 +451,8 @@ model tournaments {
   winner_id               String?                   @db.Uuid
   created_at              DateTime                  @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
   tournament_participants tournament_participants[]
+  prize_distributions     prize_distributions[]
+  tournament_results      tournament_results[]
   profiles                profiles?                 @relation(fields: [winner_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@schema("public")
@@ -466,6 +470,34 @@ model transactions {
   created_at  DateTime  @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
   profiles    profiles? @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model prize_distributions {
+  id            String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tournament_id String      @db.Uuid
+  rank          Int
+  prize_amount  Decimal     @db.Decimal
+  tournaments   tournaments @relation(fields: [tournament_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([tournament_id, rank])
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model tournament_results {
+  id            String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tournament_id String      @db.Uuid
+  user_id       String      @db.Uuid
+  rank          Int
+  kills         Int         @default(0)
+  prize_won     Decimal     @db.Decimal
+  created_at    DateTime    @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  tournaments   tournaments @relation(fields: [tournament_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  profiles      profiles    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([tournament_id, user_id])
   @@schema("public")
 }
 
